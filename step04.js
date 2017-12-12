@@ -12840,26 +12840,21 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _lucamug$elm_meta_json_decoder$Step04$getScrollPosition = _elm_lang$dom$Dom_Scroll$y('container546');
-var _lucamug$elm_meta_json_decoder$Step04$scrollTo = function (position) {
-	return A2(_elm_lang$dom$Dom_Scroll$toY, 'container546', position);
-};
+var _lucamug$elm_meta_json_decoder$Step04$containerId = 'container546';
 var _lucamug$elm_meta_json_decoder$Step04$model = {position: 0};
 var _lucamug$elm_meta_json_decoder$Step04$init = {ctor: '_Tuple2', _0: _lucamug$elm_meta_json_decoder$Step04$model, _1: _elm_lang$core$Platform_Cmd$none};
 var _lucamug$elm_meta_json_decoder$Step04$Model = function (a) {
 	return {position: a};
 };
 var _lucamug$elm_meta_json_decoder$Step04$None = {ctor: 'None'};
-var _lucamug$elm_meta_json_decoder$Step04$parseResult = function (result) {
-	var _p0 = A2(_elm_lang$core$Debug$log, 'parseResult', result);
-	return _lucamug$elm_meta_json_decoder$Step04$None;
-};
-var _lucamug$elm_meta_json_decoder$Step04$attemptToScrollTo = function (position) {
-	var _p1 = A2(_elm_lang$core$Debug$log, 'attemptToScrollTo', position);
+var _lucamug$elm_meta_json_decoder$Step04$attemptToSetScrollTop = function (position) {
+	var _p0 = A2(_elm_lang$core$Debug$log, 'attemptToSetScrollTop', position);
 	return A2(
 		_elm_lang$core$Task$attempt,
-		_lucamug$elm_meta_json_decoder$Step04$parseResult,
-		_lucamug$elm_meta_json_decoder$Step04$scrollTo(position));
+		function (_p1) {
+			return _lucamug$elm_meta_json_decoder$Step04$None;
+		},
+		A2(_elm_lang$dom$Dom_Scroll$toY, _lucamug$elm_meta_json_decoder$Step04$containerId, position));
 };
 var _lucamug$elm_meta_json_decoder$Step04$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
@@ -12875,15 +12870,18 @@ var _lucamug$elm_meta_json_decoder$Step04$subscriptions = function (model) {
 var _lucamug$elm_meta_json_decoder$Step04$ScrollTo = function (a) {
 	return {ctor: 'ScrollTo', _0: a};
 };
-var _lucamug$elm_meta_json_decoder$Step04$getScrollPositionResult = function (result) {
-	var _p2 = result;
+var _lucamug$elm_meta_json_decoder$Step04$getScrollTopResult = function (result) {
+	var _p2 = A2(_elm_lang$core$Debug$log, 'getScrollTopResult', result);
 	if (_p2.ctor === 'Ok') {
 		return _lucamug$elm_meta_json_decoder$Step04$ScrollTo(_p2._0);
 	} else {
 		return _lucamug$elm_meta_json_decoder$Step04$None;
 	}
 };
-var _lucamug$elm_meta_json_decoder$Step04$attemptToGetScrollPosition = A2(_elm_lang$core$Task$attempt, _lucamug$elm_meta_json_decoder$Step04$getScrollPositionResult, _lucamug$elm_meta_json_decoder$Step04$getScrollPosition);
+var _lucamug$elm_meta_json_decoder$Step04$attemptToGetScrollTop = A2(
+	_elm_lang$core$Task$attempt,
+	_lucamug$elm_meta_json_decoder$Step04$getScrollTopResult,
+	_elm_lang$dom$Dom_Scroll$y(_lucamug$elm_meta_json_decoder$Step04$containerId));
 var _lucamug$elm_meta_json_decoder$Step04$update = F2(
 	function (msg, model) {
 		var _p3 = msg;
@@ -12895,12 +12893,12 @@ var _lucamug$elm_meta_json_decoder$Step04$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{position: _p4}),
-					_1: _lucamug$elm_meta_json_decoder$Step04$attemptToScrollTo(_p4)
+					_1: _lucamug$elm_meta_json_decoder$Step04$attemptToSetScrollTop(_p4)
 				};
 			case 'None':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			default:
-				return {ctor: '_Tuple2', _0: model, _1: _lucamug$elm_meta_json_decoder$Step04$attemptToGetScrollPosition};
+				return {ctor: '_Tuple2', _0: model, _1: _lucamug$elm_meta_json_decoder$Step04$attemptToGetScrollTop};
 		}
 	});
 var _lucamug$elm_meta_json_decoder$Step04$view = function (model) {
@@ -12977,7 +12975,44 @@ var _lucamug$elm_meta_json_decoder$Step04$view = function (model) {
 										_0: _elm_lang$html$Html$text('Click here to go to the top'),
 										_1: {ctor: '[]'}
 									}),
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$div,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$style(
+												{
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'position', _1: 'fixed'},
+													_1: {
+														ctor: '::',
+														_0: {ctor: '_Tuple2', _0: 'top', _1: '0'},
+														_1: {
+															ctor: '::',
+															_0: {ctor: '_Tuple2', _0: 'right', _1: '0'},
+															_1: {
+																ctor: '::',
+																_0: {ctor: '_Tuple2', _0: 'padding', _1: '5px'},
+																_1: {
+																	ctor: '::',
+																	_0: {ctor: '_Tuple2', _0: 'background-color', _1: '#eee'},
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(
+												_elm_lang$core$Basics$toString(model.position)),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
 							}
 						}
 					}

@@ -3,7 +3,6 @@ module Step04 exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Dom
 import Dom.Scroll
 import Task
 import Time
@@ -31,18 +30,19 @@ type Msg
     | None
 
 
-parseResult : a -> Msg
-parseResult result =
-    let
-        _ =
-            Debug.log "parseResult" result
-    in
-        None
+containerId : String
+containerId =
+    "container546"
 
 
-getScrollPositionResult : Result error Float -> Msg
-getScrollPositionResult result =
-    case result of
+attemptToGetScrollTop : Cmd Msg
+attemptToGetScrollTop =
+    Task.attempt getScrollTopResult (Dom.Scroll.y containerId)
+
+
+getScrollTopResult : Result error Float -> Msg
+getScrollTopResult result =
+    case Debug.log "getScrollTopResult" result of
         Ok position ->
             ScrollTo position
 
@@ -50,32 +50,13 @@ getScrollPositionResult result =
             None
 
 
-scrollTo : Float -> Task.Task Dom.Error ()
-scrollTo position =
-    -- Dom.Scroll.toY : Id -> Float -> Task Error ()
-    Dom.Scroll.toY "container546" position
-
-
-getScrollPosition : Task.Task Dom.Error Float
-getScrollPosition =
-    -- Dom.Scroll.toY : Id -> Float -> Task Error ()
-    Dom.Scroll.y "container546"
-
-
-attemptToGetScrollPosition : Cmd Msg
-attemptToGetScrollPosition =
-    -- Task.attempt : (Result x a -> msg) -> Task x a -> Cmd msg
-    Task.attempt getScrollPositionResult getScrollPosition
-
-
-attemptToScrollTo : Float -> Cmd Msg
-attemptToScrollTo position =
+attemptToSetScrollTop : Float -> Cmd Msg
+attemptToSetScrollTop position =
     let
         _ =
-            Debug.log "attemptToScrollTo" position
+            Debug.log "attemptToSetScrollTop" position
     in
-        -- Task.attempt : (Result x a -> msg) -> Task x a -> Cmd msg
-        Task.attempt parseResult (scrollTo position)
+        Task.attempt (\_ -> None) (Dom.Scroll.toY containerId position)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,13 +66,13 @@ update msg model =
             if position == model.position then
                 ( model, Cmd.none )
             else
-                ( { model | position = position }, attemptToScrollTo position )
+                ( { model | position = position }, attemptToSetScrollTop position )
 
         None ->
             ( model, Cmd.none )
 
         Tick time ->
-            ( model, attemptToGetScrollPosition )
+            ( model, attemptToGetScrollTop )
 
 
 view : Model -> Html Msg
@@ -123,6 +104,16 @@ view model =
             che nel lago del cor m'era durata
             la notte ch'i' passai con tanta pieta.""" ]))
             , button [ onClick (ScrollTo 0) ] [ text "Click here to go to the top" ]
+            , div
+                [ style
+                    [ ( "position", "fixed" )
+                    , ( "top", "0" )
+                    , ( "right", "0" )
+                    , ( "padding", "5px" )
+                    , ( "background-color", "#eee" )
+                    ]
+                ]
+                [ text (toString model.position) ]
             ]
         ]
 
