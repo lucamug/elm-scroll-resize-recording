@@ -18,6 +18,8 @@ Then, to build everything:
 > elm-live --output=step02.js src/Step02.elm --open --debug
 > elm-live --output=step03.js src/Step03.elm --open --debug
 > elm-live --output=step04.js src/Step04.elm --open --debug
+> elm-live --output=step05.js src/Step05.elm --open --debug
+> elm-live --output=step06.js src/Step06.elm --open --debug
 
 (Leave off the `--debug` if you don't want the time-traveling debugger.)
 

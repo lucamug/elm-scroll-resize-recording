@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Step 06</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: sans-serif;
+            color: #444;
+            margin: 0;
+        }
+    </style>
+    <script src="step06.js"></script>
+</head>
+
+<body>
+    <script>
+        var app = Elm.Step06.fullscreen();
+
+        function addEventListener() {
+            var element = document.getElementById("container546");
+            if (element) {
+                element.addEventListener('scroll', function() {
+                    document.getEleme
+                    app.ports.scrollOrResize.send("Ciao");
+                });
+            } else {
+                setTimeout(addEventListener, 1000);
+            }
+        }
+        addEventListener();
+    </script>
+</body>
+
+</html>
