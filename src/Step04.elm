@@ -19,11 +19,6 @@ model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( model, Cmd.none )
-
-
 type Msg
     = ScrollTo Float
     | Tick Time.Time
@@ -42,7 +37,7 @@ attemptToGetScrollTop =
 
 getScrollTopResult : Result error Float -> Msg
 getScrollTopResult result =
-    case Debug.log "getScrollTopResult" result of
+    case result of
         Ok position ->
             ScrollTo position
 
@@ -56,7 +51,16 @@ attemptToSetScrollTop position =
         _ =
             Debug.log "attemptToSetScrollTop" position
     in
-        Task.attempt (\_ -> None) (Dom.Scroll.toY containerId position)
+        Task.attempt setScrollTopResult (Dom.Scroll.toY containerId position)
+
+
+setScrollTopResult : a -> Msg
+setScrollTopResult result =
+    let
+        _ =
+            Debug.log "setScrollTopResult" result
+    in
+        None
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -77,7 +81,15 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div
+        [ id "container546"
+        , style
+            [ ( "margin", "2em" )
+            , ( "height", "200px" )
+            , ( "overflow-y", "scroll" )
+            , ( "background-color", "#ffccff" )
+            ]
+        ]
         [ div [ style [ ( "margin", "2em" ) ] ]
             [ h1 [] [ text "Simple Test" ]
             , button [ onClick (ScrollTo 100) ] [ text "Click here to go down 100px" ]
@@ -128,7 +140,7 @@ subscriptions model =
 main : Program Never Model Msg
 main =
     program
-        { init = init
+        { init = ( model, Cmd.none )
         , view = view
         , update = update
         , subscriptions = subscriptions

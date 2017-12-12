@@ -12842,18 +12842,19 @@ var _elm_lang$html$Html_Events$Options = F2(
 
 var _lucamug$elm_meta_json_decoder$Step04$containerId = 'container546';
 var _lucamug$elm_meta_json_decoder$Step04$model = {position: 0};
-var _lucamug$elm_meta_json_decoder$Step04$init = {ctor: '_Tuple2', _0: _lucamug$elm_meta_json_decoder$Step04$model, _1: _elm_lang$core$Platform_Cmd$none};
 var _lucamug$elm_meta_json_decoder$Step04$Model = function (a) {
 	return {position: a};
 };
 var _lucamug$elm_meta_json_decoder$Step04$None = {ctor: 'None'};
+var _lucamug$elm_meta_json_decoder$Step04$setScrollTopResult = function (result) {
+	var _p0 = A2(_elm_lang$core$Debug$log, 'setScrollTopResult', result);
+	return _lucamug$elm_meta_json_decoder$Step04$None;
+};
 var _lucamug$elm_meta_json_decoder$Step04$attemptToSetScrollTop = function (position) {
-	var _p0 = A2(_elm_lang$core$Debug$log, 'attemptToSetScrollTop', position);
+	var _p1 = A2(_elm_lang$core$Debug$log, 'attemptToSetScrollTop', position);
 	return A2(
 		_elm_lang$core$Task$attempt,
-		function (_p1) {
-			return _lucamug$elm_meta_json_decoder$Step04$None;
-		},
+		_lucamug$elm_meta_json_decoder$Step04$setScrollTopResult,
 		A2(_elm_lang$dom$Dom_Scroll$toY, _lucamug$elm_meta_json_decoder$Step04$containerId, position));
 };
 var _lucamug$elm_meta_json_decoder$Step04$Tick = function (a) {
@@ -12871,7 +12872,7 @@ var _lucamug$elm_meta_json_decoder$Step04$ScrollTo = function (a) {
 	return {ctor: 'ScrollTo', _0: a};
 };
 var _lucamug$elm_meta_json_decoder$Step04$getScrollTopResult = function (result) {
-	var _p2 = A2(_elm_lang$core$Debug$log, 'getScrollTopResult', result);
+	var _p2 = result;
 	if (_p2.ctor === 'Ok') {
 		return _lucamug$elm_meta_json_decoder$Step04$ScrollTo(_p2._0);
 	} else {
@@ -12904,7 +12905,32 @@ var _lucamug$elm_meta_json_decoder$Step04$update = F2(
 var _lucamug$elm_meta_json_decoder$Step04$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
-		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('container546'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'margin', _1: '2em'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'height', _1: '200px'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'overflow-y', _1: 'scroll'},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'background-color', _1: '#ffccff'},
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			}
+		},
 		{
 			ctor: '::',
 			_0: A2(
@@ -13021,7 +13047,12 @@ var _lucamug$elm_meta_json_decoder$Step04$view = function (model) {
 		});
 };
 var _lucamug$elm_meta_json_decoder$Step04$main = _elm_lang$html$Html$program(
-	{init: _lucamug$elm_meta_json_decoder$Step04$init, view: _lucamug$elm_meta_json_decoder$Step04$view, update: _lucamug$elm_meta_json_decoder$Step04$update, subscriptions: _lucamug$elm_meta_json_decoder$Step04$subscriptions})();
+	{
+		init: {ctor: '_Tuple2', _0: _lucamug$elm_meta_json_decoder$Step04$model, _1: _elm_lang$core$Platform_Cmd$none},
+		view: _lucamug$elm_meta_json_decoder$Step04$view,
+		update: _lucamug$elm_meta_json_decoder$Step04$update,
+		subscriptions: _lucamug$elm_meta_json_decoder$Step04$subscriptions
+	})();
 
 var Elm = {};
 Elm['Step04'] = Elm['Step04'] || {};
