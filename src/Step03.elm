@@ -3,10 +3,7 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Dom.Scroll as Scroll exposing (..)
 import Regex
-import Task
-import Dom
 
 
 port scrollTop : Int -> Cmd msg
@@ -49,8 +46,6 @@ init =
 type Msg
     = ScrollTop Int
     | OnScroll ScreenData
-    | Success Result Dom.Error Float
-    | Baba
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,15 +55,7 @@ update msg model =
             ( model, Cmd.batch [ scrollTop 0 ] )
 
         OnScroll data ->
-            let
-                _ =
-                    Debug.log "Elm: " data.scrollTop
-            in
-                ( { model | screenData = Just data }, Cmd.none )
-
-
-scrollTo position =
-    Task.attempt (\_ -> Baba) (Scroll.toY "myBody" position)
+            ( { model | screenData = Just data }, Cmd.none )
 
 
 view : Model -> Html Msg

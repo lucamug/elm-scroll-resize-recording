@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html id="container546">
+
+<head>
+    <meta charset="utf-8">
+    <title>Step 02</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: sans-serif;
+            color: #444;
+            margin: 0;
+        }
+    </style>
+    <script src="step02.js"></script>
+</head>
+
+<body>
+    <script>
+        var app = Elm.Step02.fullscreen();
+        var body = document.body;
+        var html = document.documentElement;
+        window.addEventListener('scroll', function() {
+            var screenData = {
+                scrollTop: parseInt(window.pageYOffset || html.scrollTop || body.scrollTop || 0),
+                pageHeight: parseInt(Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight)),
+                viewportHeight: parseInt(html.clientHeight),
+                viewportWidth: parseInt(html.clientWidth),
+            };
+            app.ports.scrollOrResize.send(screenData);
+        });
+    </script>
+</body>
+
+</html>

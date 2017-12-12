@@ -5927,6 +5927,126 @@ var _elm_lang$core$Json_Decode$bool = _elm_lang$core$Native_Json.decodePrimitive
 var _elm_lang$core$Json_Decode$string = _elm_lang$core$Native_Json.decodePrimitive('string');
 var _elm_lang$core$Json_Decode$Decoder = {ctor: 'Decoder'};
 
+//import Maybe, Native.List //
+
+var _elm_lang$core$Native_Regex = function() {
+
+function escape(str)
+{
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+function caseInsensitive(re)
+{
+	return new RegExp(re.source, 'gi');
+}
+function regex(raw)
+{
+	return new RegExp(raw, 'g');
+}
+
+function contains(re, string)
+{
+	return string.match(re) !== null;
+}
+
+function find(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var out = [];
+	var number = 0;
+	var string = str;
+	var lastIndex = re.lastIndex;
+	var prevLastIndex = -1;
+	var result;
+	while (number++ < n && (result = re.exec(string)))
+	{
+		if (prevLastIndex === re.lastIndex) break;
+		var i = result.length - 1;
+		var subs = new Array(i);
+		while (i > 0)
+		{
+			var submatch = result[i];
+			subs[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		out.push({
+			match: result[0],
+			submatches: _elm_lang$core$Native_List.fromArray(subs),
+			index: result.index,
+			number: number
+		});
+		prevLastIndex = re.lastIndex;
+	}
+	re.lastIndex = lastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+function replace(n, re, replacer, string)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var count = 0;
+	function jsReplacer(match)
+	{
+		if (count++ >= n)
+		{
+			return match;
+		}
+		var i = arguments.length - 3;
+		var submatches = new Array(i);
+		while (i > 0)
+		{
+			var submatch = arguments[i];
+			submatches[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		return replacer({
+			match: match,
+			submatches: _elm_lang$core$Native_List.fromArray(submatches),
+			index: arguments[arguments.length - 2],
+			number: count
+		});
+	}
+	return string.replace(re, jsReplacer);
+}
+
+function split(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	if (n === Infinity)
+	{
+		return _elm_lang$core$Native_List.fromArray(str.split(re));
+	}
+	var string = str;
+	var result;
+	var out = [];
+	var start = re.lastIndex;
+	var restoreLastIndex = re.lastIndex;
+	while (n--)
+	{
+		if (!(result = re.exec(string))) break;
+		out.push(string.slice(start, result.index));
+		start = re.lastIndex;
+	}
+	out.push(string.slice(start));
+	re.lastIndex = restoreLastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+return {
+	regex: regex,
+	caseInsensitive: caseInsensitive,
+	escape: escape,
+
+	contains: F2(contains),
+	find: F3(find),
+	replace: F4(replace),
+	split: F3(split)
+};
+
+}();
+
 var _elm_lang$core$Tuple$mapSecond = F2(
 	function (func, _p0) {
 		var _p1 = _p0;
@@ -5954,214 +6074,22 @@ var _elm_lang$core$Tuple$first = function (_p6) {
 	return _p7._0;
 };
 
-var _elm_lang$dom$Native_Dom = function() {
-
-var fakeNode = {
-	addEventListener: function() {},
-	removeEventListener: function() {}
+var _elm_lang$core$Regex$split = _elm_lang$core$Native_Regex.split;
+var _elm_lang$core$Regex$replace = _elm_lang$core$Native_Regex.replace;
+var _elm_lang$core$Regex$find = _elm_lang$core$Native_Regex.find;
+var _elm_lang$core$Regex$contains = _elm_lang$core$Native_Regex.contains;
+var _elm_lang$core$Regex$caseInsensitive = _elm_lang$core$Native_Regex.caseInsensitive;
+var _elm_lang$core$Regex$regex = _elm_lang$core$Native_Regex.regex;
+var _elm_lang$core$Regex$escape = _elm_lang$core$Native_Regex.escape;
+var _elm_lang$core$Regex$Match = F4(
+	function (a, b, c, d) {
+		return {match: a, submatches: b, index: c, number: d};
+	});
+var _elm_lang$core$Regex$Regex = {ctor: 'Regex'};
+var _elm_lang$core$Regex$AtMost = function (a) {
+	return {ctor: 'AtMost', _0: a};
 };
-
-var onDocument = on(typeof document !== 'undefined' ? document : fakeNode);
-var onWindow = on(typeof window !== 'undefined' ? window : fakeNode);
-
-function on(node)
-{
-	return function(eventName, decoder, toTask)
-	{
-		return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
-
-			function performTask(event)
-			{
-				var result = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, event);
-				if (result.ctor === 'Ok')
-				{
-					_elm_lang$core$Native_Scheduler.rawSpawn(toTask(result._0));
-				}
-			}
-
-			node.addEventListener(eventName, performTask);
-
-			return function()
-			{
-				node.removeEventListener(eventName, performTask);
-			};
-		});
-	};
-}
-
-var rAF = typeof requestAnimationFrame !== 'undefined'
-	? requestAnimationFrame
-	: function(callback) { callback(); };
-
-function withNode(id, doStuff)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-	{
-		rAF(function()
-		{
-			var node = document.getElementById(id);
-			if (node === null)
-			{
-				callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'NotFound', _0: id }));
-				return;
-			}
-			callback(_elm_lang$core$Native_Scheduler.succeed(doStuff(node)));
-		});
-	});
-}
-
-
-// FOCUS
-
-function focus(id)
-{
-	return withNode(id, function(node) {
-		node.focus();
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function blur(id)
-{
-	return withNode(id, function(node) {
-		node.blur();
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-
-// SCROLLING
-
-function getScrollTop(id)
-{
-	return withNode(id, function(node) {
-		return node.scrollTop;
-	});
-}
-
-function setScrollTop(id, desiredScrollTop)
-{
-	return withNode(id, function(node) {
-		node.scrollTop = desiredScrollTop;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function toBottom(id)
-{
-	return withNode(id, function(node) {
-		node.scrollTop = node.scrollHeight;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function getScrollLeft(id)
-{
-	return withNode(id, function(node) {
-		return node.scrollLeft;
-	});
-}
-
-function setScrollLeft(id, desiredScrollLeft)
-{
-	return withNode(id, function(node) {
-		node.scrollLeft = desiredScrollLeft;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function toRight(id)
-{
-	return withNode(id, function(node) {
-		node.scrollLeft = node.scrollWidth;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-
-// SIZE
-
-function width(options, id)
-{
-	return withNode(id, function(node) {
-		switch (options.ctor)
-		{
-			case 'Content':
-				return node.scrollWidth;
-			case 'VisibleContent':
-				return node.clientWidth;
-			case 'VisibleContentWithBorders':
-				return node.offsetWidth;
-			case 'VisibleContentWithBordersAndMargins':
-				var rect = node.getBoundingClientRect();
-				return rect.right - rect.left;
-		}
-	});
-}
-
-function height(options, id)
-{
-	return withNode(id, function(node) {
-		switch (options.ctor)
-		{
-			case 'Content':
-				return node.scrollHeight;
-			case 'VisibleContent':
-				return node.clientHeight;
-			case 'VisibleContentWithBorders':
-				return node.offsetHeight;
-			case 'VisibleContentWithBordersAndMargins':
-				var rect = node.getBoundingClientRect();
-				return rect.bottom - rect.top;
-		}
-	});
-}
-
-return {
-	onDocument: F3(onDocument),
-	onWindow: F3(onWindow),
-
-	focus: focus,
-	blur: blur,
-
-	getScrollTop: getScrollTop,
-	setScrollTop: F2(setScrollTop),
-	getScrollLeft: getScrollLeft,
-	setScrollLeft: F2(setScrollLeft),
-	toBottom: toBottom,
-	toRight: toRight,
-
-	height: F2(height),
-	width: F2(width)
-};
-
-}();
-
-var _elm_lang$dom$Dom$blur = _elm_lang$dom$Native_Dom.blur;
-var _elm_lang$dom$Dom$focus = _elm_lang$dom$Native_Dom.focus;
-var _elm_lang$dom$Dom$NotFound = function (a) {
-	return {ctor: 'NotFound', _0: a};
-};
-
-var _elm_lang$dom$Dom_Size$width = _elm_lang$dom$Native_Dom.width;
-var _elm_lang$dom$Dom_Size$height = _elm_lang$dom$Native_Dom.height;
-var _elm_lang$dom$Dom_Size$VisibleContentWithBordersAndMargins = {ctor: 'VisibleContentWithBordersAndMargins'};
-var _elm_lang$dom$Dom_Size$VisibleContentWithBorders = {ctor: 'VisibleContentWithBorders'};
-var _elm_lang$dom$Dom_Size$VisibleContent = {ctor: 'VisibleContent'};
-var _elm_lang$dom$Dom_Size$Content = {ctor: 'Content'};
-
-var _elm_lang$dom$Dom_Scroll$toX = _elm_lang$dom$Native_Dom.setScrollLeft;
-var _elm_lang$dom$Dom_Scroll$x = _elm_lang$dom$Native_Dom.getScrollLeft;
-var _elm_lang$dom$Dom_Scroll$toRight = _elm_lang$dom$Native_Dom.toRight;
-var _elm_lang$dom$Dom_Scroll$toLeft = function (id) {
-	return A2(_elm_lang$dom$Dom_Scroll$toX, id, 0);
-};
-var _elm_lang$dom$Dom_Scroll$toY = _elm_lang$dom$Native_Dom.setScrollTop;
-var _elm_lang$dom$Dom_Scroll$y = _elm_lang$dom$Native_Dom.getScrollTop;
-var _elm_lang$dom$Dom_Scroll$toBottom = _elm_lang$dom$Native_Dom.toBottom;
-var _elm_lang$dom$Dom_Scroll$toTop = function (id) {
-	return A2(_elm_lang$dom$Dom_Scroll$toY, id, 0);
-};
+var _elm_lang$core$Regex$All = {ctor: 'All'};
 
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
@@ -12625,44 +12553,103 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _lucamug$elm_meta_json_decoder$Simple$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$batch(
-		{ctor: '[]'});
-};
-var _lucamug$elm_meta_json_decoder$Simple$scrollTo = function (position) {
-	return A2(_elm_lang$dom$Dom_Scroll$toY, 'container546', position);
-};
-var _lucamug$elm_meta_json_decoder$Simple$model = {};
-var _lucamug$elm_meta_json_decoder$Simple$init = {ctor: '_Tuple2', _0: _lucamug$elm_meta_json_decoder$Simple$model, _1: _elm_lang$core$Platform_Cmd$none};
-var _lucamug$elm_meta_json_decoder$Simple$Model = {};
-var _lucamug$elm_meta_json_decoder$Simple$None = {ctor: 'None'};
-var _lucamug$elm_meta_json_decoder$Simple$parseResult = function (result) {
-	var _p0 = A2(_elm_lang$core$Debug$log, 'parseResult', result);
-	return _lucamug$elm_meta_json_decoder$Simple$None;
-};
-var _lucamug$elm_meta_json_decoder$Simple$attemptToScrollTo = function (position) {
-	return A2(
-		_elm_lang$core$Task$attempt,
-		_lucamug$elm_meta_json_decoder$Simple$parseResult,
-		_lucamug$elm_meta_json_decoder$Simple$scrollTo(position));
-};
-var _lucamug$elm_meta_json_decoder$Simple$update = F2(
+var _lucamug$elm_meta_json_decoder$Main$percFloat = F2(
+	function (limit, data) {
+		return _elm_lang$core$Basics$toFloat(data.scrollTop * limit) / _elm_lang$core$Basics$toFloat(data.pageHeight - data.viewportHeight);
+	});
+var _lucamug$elm_meta_json_decoder$Main$perc = F2(
+	function (limit, data) {
+		return _elm_lang$core$Basics$toString(
+			_elm_lang$core$Basics$round(
+				A2(_lucamug$elm_meta_json_decoder$Main$percFloat, limit, data)));
+	});
+var _lucamug$elm_meta_json_decoder$Main$model = {screenData: _elm_lang$core$Maybe$Nothing};
+var _lucamug$elm_meta_json_decoder$Main$init = {ctor: '_Tuple2', _0: _lucamug$elm_meta_json_decoder$Main$model, _1: _elm_lang$core$Platform_Cmd$none};
+var _lucamug$elm_meta_json_decoder$Main$scrollTop = _elm_lang$core$Native_Platform.outgoingPort(
+	'scrollTop',
+	function (v) {
+		return v;
+	});
+var _lucamug$elm_meta_json_decoder$Main$update = F2(
 	function (msg, model) {
-		var _p1 = A2(_elm_lang$core$Debug$log, 'msg', msg);
-		if (_p1.ctor === 'ScrollTo') {
+		var _p0 = msg;
+		if (_p0.ctor === 'ScrollTop') {
 			return {
 				ctor: '_Tuple2',
 				_0: model,
-				_1: _lucamug$elm_meta_json_decoder$Simple$attemptToScrollTo(_p1._0)
+				_1: _elm_lang$core$Platform_Cmd$batch(
+					{
+						ctor: '::',
+						_0: _lucamug$elm_meta_json_decoder$Main$scrollTop(0),
+						_1: {ctor: '[]'}
+					})
 			};
 		} else {
-			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						screenData: _elm_lang$core$Maybe$Just(_p0._0)
+					}),
+				_1: _elm_lang$core$Platform_Cmd$none
+			};
 		}
 	});
-var _lucamug$elm_meta_json_decoder$Simple$ScrollTo = function (a) {
-	return {ctor: 'ScrollTo', _0: a};
+var _lucamug$elm_meta_json_decoder$Main$scrollOrResize = _elm_lang$core$Native_Platform.incomingPort(
+	'scrollOrResize',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (scrollTop) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (pageHeight) {
+					return A2(
+						_elm_lang$core$Json_Decode$andThen,
+						function (viewportHeight) {
+							return A2(
+								_elm_lang$core$Json_Decode$andThen,
+								function (viewportWidth) {
+									return _elm_lang$core$Json_Decode$succeed(
+										{scrollTop: scrollTop, pageHeight: pageHeight, viewportHeight: viewportHeight, viewportWidth: viewportWidth});
+								},
+								A2(_elm_lang$core$Json_Decode$field, 'viewportWidth', _elm_lang$core$Json_Decode$int));
+						},
+						A2(_elm_lang$core$Json_Decode$field, 'viewportHeight', _elm_lang$core$Json_Decode$int));
+				},
+				A2(_elm_lang$core$Json_Decode$field, 'pageHeight', _elm_lang$core$Json_Decode$int));
+		},
+		A2(_elm_lang$core$Json_Decode$field, 'scrollTop', _elm_lang$core$Json_Decode$int)));
+var _lucamug$elm_meta_json_decoder$Main$ScreenData = F4(
+	function (a, b, c, d) {
+		return {scrollTop: a, pageHeight: b, viewportHeight: c, viewportWidth: d};
+	});
+var _lucamug$elm_meta_json_decoder$Main$Model = function (a) {
+	return {screenData: a};
 };
-var _lucamug$elm_meta_json_decoder$Simple$view = function (model) {
+var _lucamug$elm_meta_json_decoder$Main$OnScroll = function (a) {
+	return {ctor: 'OnScroll', _0: a};
+};
+var _lucamug$elm_meta_json_decoder$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: _lucamug$elm_meta_json_decoder$Main$scrollOrResize(_lucamug$elm_meta_json_decoder$Main$OnScroll),
+			_1: {ctor: '[]'}
+		});
+};
+var _lucamug$elm_meta_json_decoder$Main$ScrollTop = function (a) {
+	return {ctor: 'ScrollTop', _0: a};
+};
+var _lucamug$elm_meta_json_decoder$Main$view = function (model) {
+	var percentage100 = function () {
+		var _p1 = model.screenData;
+		if (_p1.ctor === 'Just') {
+			return A2(_lucamug$elm_meta_json_decoder$Main$perc, 100, _p1._0);
+		} else {
+			return '0';
+		}
+	}();
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
@@ -12687,40 +12674,261 @@ var _lucamug$elm_meta_json_decoder$Simple$view = function (model) {
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Simple Test'),
+							_0: _elm_lang$html$Html$text('Elm - Scroll & Resize Events'),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$p,
+							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(
-									_lucamug$elm_meta_json_decoder$Simple$ScrollTo(100)),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Click here to go down 100px'),
+								_0: _elm_lang$html$Html$text('Scroll the page and resize the browser to see how these events are captured in Javascript and sent to Elm'),
 								_1: {ctor: '[]'}
 							}),
 						_1: {
 							ctor: '::',
 							_0: A2(
+								_elm_lang$html$Html$p,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Article: '),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$a,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$href('https://medium.com/@l.mugnaini/scroll-and-resize-events-in-elm-ac4f0589f42'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('https://medium.com/@l.mugnaini/scroll-and-resize-events-in-elm-ac4f0589f42'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$p,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Code: '),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$a,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$href('https://github.com/lucamug/elm-scroll-resize-events'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('https://github.com/lucamug/elm-scroll-resize-events'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$div,
+										{ctor: '[]'},
+										A2(
+											_elm_lang$core$List$repeat,
+											15,
+											A2(
+												_elm_lang$html$Html$p,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('\n            Nel mezzo del cammin di nostra vita\n            mi ritrovai per una selva oscura,\n            ché la diritta via era smarrita.\n            Ahi quanto a dir qual era è cosa dura\n            esta selva selvaggia e aspra e forte\n            che nel pensier rinova la paura!\n            Tant\' è amara che poco è più morte;\n            ma per trattar del ben ch\'i\' vi trovai,\n            dirò de l\'altre cose ch\'i\' v\'ho scorte.\n            Io non so ben ridir com\' i\' v\'intrai,\n            tant\' era pien di sonno a quel punto\n            che la verace via abbandonai.\n            Ma poi ch\'i\' fui al piè d\'un colle giunto,\n            là dove terminava quella valle\n            che m\'avea di paura il cor compunto,\n            guardai in alto e vidi le sue spalle\n            vestite già de\' raggi del pianeta\n            che mena dritto altrui per ogne calle.\n            Allor fu la paura un poco queta,\n            che nel lago del cor m\'era durata\n            la notte ch\'i\' passai con tanta pieta.'),
+													_1: {ctor: '[]'}
+												}))),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$style(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'position', _1: 'fixed'},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'top', _1: '0px'},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'background-color',
+											_1: A2(
+												_elm_lang$core$Basics_ops['++'],
+												'rgb(',
+												A2(_elm_lang$core$Basics_ops['++'], percentage100, '%, 0%, 50%)'))
+										},
+										_1: {
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'height', _1: '20px'},
+											_1: {
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'width',
+													_1: A2(_elm_lang$core$Basics_ops['++'], percentage100, '%')
+												},
+												_1: {
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'transition', _1: 'width 0.4s'},
+													_1: {
+														ctor: '::',
+														_0: {ctor: '_Tuple2', _0: 'opacity', _1: '0.8'},
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}
+								}
+							}),
+						_1: {ctor: '[]'}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$style(
+								{
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'position', _1: 'fixed'},
+									_1: {
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'top', _1: '50%'},
+										_1: {
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'left', _1: '50%'},
+											_1: {
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'background-color',
+													_1: A2(
+														_elm_lang$core$Basics_ops['++'],
+														'rgb(',
+														A2(_elm_lang$core$Basics_ops['++'], percentage100, '%, 0%, 50%)'))
+												},
+												_1: {
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'color', _1: 'white'},
+													_1: {
+														ctor: '::',
+														_0: {ctor: '_Tuple2', _0: 'width', _1: '200px'},
+														_1: {
+															ctor: '::',
+															_0: {ctor: '_Tuple2', _0: 'padding', _1: '1em'},
+															_1: {
+																ctor: '::',
+																_0: {ctor: '_Tuple2', _0: 'transform', _1: 'translate(-50%, -50%)'},
+																_1: {
+																	ctor: '::',
+																	_0: {ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+																	_1: {
+																		ctor: '::',
+																		_0: {ctor: '_Tuple2', _0: 'transition', _1: 'all 600ms'},
+																		_1: {
+																			ctor: '::',
+																			_0: {ctor: '_Tuple2', _0: 'opacity', _1: '0.8'},
+																			_1: {ctor: '[]'}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
 								_elm_lang$html$Html$div,
 								{ctor: '[]'},
-								A2(
-									_elm_lang$core$List$repeat,
-									15,
-									A2(
-										_elm_lang$html$Html$p,
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$pre,
 										{ctor: '[]'},
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html$text('\n            Nel mezzo del cammin di nostra vita\n            mi ritrovai per una selva oscura,\n            ché la diritta via era smarrita.\n            Ahi quanto a dir qual era è cosa dura\n            esta selva selvaggia e aspra e forte\n            che nel pensier rinova la paura!\n            Tant\' è amara che poco è più morte;\n            ma per trattar del ben ch\'i\' vi trovai,\n            dirò de l\'altre cose ch\'i\' v\'ho scorte.\n            Io non so ben ridir com\' i\' v\'intrai,\n            tant\' era pien di sonno a quel punto\n            che la verace via abbandonai.\n            Ma poi ch\'i\' fui al piè d\'un colle giunto,\n            là dove terminava quella valle\n            che m\'avea di paura il cor compunto,\n            guardai in alto e vidi le sue spalle\n            vestite già de\' raggi del pianeta\n            che mena dritto altrui per ogne calle.\n            Allor fu la paura un poco queta,\n            che nel lago del cor m\'era durata\n            la notte ch\'i\' passai con tanta pieta.'),
+											_0: function () {
+												var _p2 = model.screenData;
+												if (_p2.ctor === 'Just') {
+													var _p6 = _p2._0;
+													return _elm_lang$html$Html$text(
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															A4(
+																_elm_lang$core$Regex$replace,
+																_elm_lang$core$Regex$All,
+																_elm_lang$core$Regex$regex(','),
+																function (_p3) {
+																	return '\n';
+																},
+																A4(
+																	_elm_lang$core$Regex$replace,
+																	_elm_lang$core$Regex$All,
+																	_elm_lang$core$Regex$regex('}.*}'),
+																	function (_p4) {
+																		return '';
+																	},
+																	A4(
+																		_elm_lang$core$Regex$replace,
+																		_elm_lang$core$Regex$All,
+																		_elm_lang$core$Regex$regex('{.*{'),
+																		function (_p5) {
+																			return '';
+																		},
+																		_elm_lang$core$Basics$toString(model)))),
+															A2(
+																_elm_lang$core$Basics_ops['++'],
+																'\nscrollBottom = ',
+																A2(
+																	_elm_lang$core$Basics_ops['++'],
+																	_elm_lang$core$Basics$toString((_p6.pageHeight - _p6.scrollTop) - _p6.viewportHeight),
+																	A2(
+																		_elm_lang$core$Basics_ops['++'],
+																		'\npercentage = ',
+																		A2(_elm_lang$core$Basics_ops['++'], percentage100, '%'))))));
+												} else {
+													return _elm_lang$html$Html$text('Scroll or Resize');
+												}
+											}(),
 											_1: {ctor: '[]'}
-										}))),
+										}),
+									_1: {ctor: '[]'}
+								}),
 							_1: {
 								ctor: '::',
 								_0: A2(
@@ -12728,7 +12936,7 @@ var _lucamug$elm_meta_json_decoder$Simple$view = function (model) {
 									{
 										ctor: '::',
 										_0: _elm_lang$html$Html_Events$onClick(
-											_lucamug$elm_meta_json_decoder$Simple$ScrollTo(0)),
+											_lucamug$elm_meta_json_decoder$Main$ScrollTop(0)),
 										_1: {ctor: '[]'}
 									},
 									{
@@ -12738,19 +12946,19 @@ var _lucamug$elm_meta_json_decoder$Simple$view = function (model) {
 									}),
 								_1: {ctor: '[]'}
 							}
-						}
-					}
-				}),
-			_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}
 		});
 };
-var _lucamug$elm_meta_json_decoder$Simple$main = _elm_lang$html$Html$program(
-	{init: _lucamug$elm_meta_json_decoder$Simple$init, view: _lucamug$elm_meta_json_decoder$Simple$view, update: _lucamug$elm_meta_json_decoder$Simple$update, subscriptions: _lucamug$elm_meta_json_decoder$Simple$subscriptions})();
+var _lucamug$elm_meta_json_decoder$Main$main = _elm_lang$html$Html$program(
+	{init: _lucamug$elm_meta_json_decoder$Main$init, view: _lucamug$elm_meta_json_decoder$Main$view, update: _lucamug$elm_meta_json_decoder$Main$update, subscriptions: _lucamug$elm_meta_json_decoder$Main$subscriptions})();
 
 var Elm = {};
-Elm['Simple'] = Elm['Simple'] || {};
-if (typeof _lucamug$elm_meta_json_decoder$Simple$main !== 'undefined') {
-    _lucamug$elm_meta_json_decoder$Simple$main(Elm['Simple'], 'Simple', {"types":{"unions":{"Simple.Msg":{"args":[],"tags":{"None":[],"ScrollTo":["Float"]}}},"aliases":{},"message":"Simple.Msg"},"versions":{"elm":"0.18.0"}});
+Elm['Main'] = Elm['Main'] || {};
+if (typeof _lucamug$elm_meta_json_decoder$Main$main !== 'undefined') {
+    _lucamug$elm_meta_json_decoder$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Main.Msg":{"args":[],"tags":{"OnScroll":["Main.ScreenData"],"ScrollTop":["Int"]}}},"aliases":{"Main.ScreenData":{"args":[],"type":"{ scrollTop : Int , pageHeight : Int , viewportHeight : Int , viewportWidth : Int }"}},"message":"Main.Msg"},"versions":{"elm":"0.18.0"}});
 }
 
 if (typeof define === "function" && define['amd'])

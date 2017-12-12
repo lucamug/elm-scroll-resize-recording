@@ -1,4 +1,4 @@
-module Simple exposing (..)
+module Step04 exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -6,15 +6,18 @@ import Html.Events exposing (..)
 import Dom
 import Dom.Scroll
 import Task
+import Time
 
 
 type alias Model =
-    {}
+    { position : Float
+    }
 
 
 model : Model
 model =
-    {}
+    { position = 0
+    }
 
 
 init : ( Model, Cmd Msg )
@@ -24,6 +27,7 @@ init =
 
 type Msg
     = ScrollTo Float
+    | Tick Time.Time
     | None
 
 
@@ -36,27 +40,58 @@ parseResult result =
         None
 
 
+getScrollPositionResult : Result error Float -> Msg
+getScrollPositionResult result =
+    case result of
+        Ok position ->
+            ScrollTo position
+
+        Err error ->
+            None
+
+
 scrollTo : Float -> Task.Task Dom.Error ()
 scrollTo position =
     -- Dom.Scroll.toY : Id -> Float -> Task Error ()
     Dom.Scroll.toY "container546" position
 
 
+getScrollPosition : Task.Task Dom.Error Float
+getScrollPosition =
+    -- Dom.Scroll.toY : Id -> Float -> Task Error ()
+    Dom.Scroll.y "container546"
+
+
+attemptToGetScrollPosition : Cmd Msg
+attemptToGetScrollPosition =
+    -- Task.attempt : (Result x a -> msg) -> Task x a -> Cmd msg
+    Task.attempt getScrollPositionResult getScrollPosition
+
+
 attemptToScrollTo : Float -> Cmd Msg
 attemptToScrollTo position =
-    -- Task.attempt : (Result x a -> msg) -> Task x a -> Cmd msg
-    Task.attempt parseResult (scrollTo position)
+    let
+        _ =
+            Debug.log "attemptToScrollTo" position
+    in
+        -- Task.attempt : (Result x a -> msg) -> Task x a -> Cmd msg
+        Task.attempt parseResult (scrollTo position)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "msg" msg of
+    case msg of
         ScrollTo position ->
-            -- ( model, Cmd.none )
-            ( model, attemptToScrollTo position )
+            if position == model.position then
+                ( model, Cmd.none )
+            else
+                ( { model | position = position }, attemptToScrollTo position )
 
         None ->
             ( model, Cmd.none )
+
+        Tick time ->
+            ( model, attemptToGetScrollPosition )
 
 
 view : Model -> Html Msg
@@ -95,7 +130,8 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        []
+        [ Time.every Time.second Tick
+        ]
 
 
 main : Program Never Model Msg

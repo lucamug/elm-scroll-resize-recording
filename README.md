@@ -14,7 +14,9 @@ If you don't already have `elm` and `elm-live`:
 
 Then, to build everything:
 
-> elm-live --output=elm.js src/Main.elm --open --debug
-> elm-live --output=simple.js src/Simple.elm --open --debug
+> elm-live --output=step01.js src/Step01.elm --open --debug
+> elm-live --output=step02.js src/Step02.elm --open --debug
+> elm-live --output=step03.js src/Step03.elm --open --debug
+> elm-live --output=step04.js src/Step04.elm --open --debug
 
 (Leave off the `--debug` if you don't want the time-traveling debugger.)
